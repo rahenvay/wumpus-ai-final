@@ -26,10 +26,9 @@ def get_percepts(x, y, world_map):
     return percepts
 
 def generate_post_mission_report(visited, gold_locations, prolog):
-    print("\n" + "="*30)
-    print("      POST-MISSION REPORT")
-    print("="*30)
-    print("Legend: [V] Visited  [G] Gold  [P] Possible Pit  [W] Possible Wumpus  [?] Unknown\n")
+    print("\nMission report")
+    print("--------------")
+    print("[V] visited  [G] gold  [P] pit  [W] wumpus  [?] unknown\n")
     
     for y in range(4, 0, -1):
         row_display = ""
@@ -53,13 +52,13 @@ def generate_post_mission_report(visited, gold_locations, prolog):
                     row_display += "[ ] " 
         print(row_display)
         
-    print("\n--- Treasure Recovery Summary ---")
+    print("\nGold found:")
     if not gold_locations:
-        print("No gold was recovered during this mission.")
+        print("None")
     else:
         for idx, loc in enumerate(gold_locations, 1):
-            print(f"Piece {idx} recovered at coordinates: {loc}")
-    print("=================================\n")
+            print(f"{idx}. {loc}")
+    print()
 
 def main():
     # Force absolute pathing to prevent directory errors
@@ -71,11 +70,11 @@ def main():
     
     world_map = create_hidden_map()
     
-    print("Welcome to the Wumpus World AI Simulator!")
+    print("Wumpus World")
     try:
         gold_goal = int(input("Enter the number of gold pieces to find (n): "))
     except ValueError:
-        print("Invalid input. Defaulting to n = 1.")
+        print("Invalid input. Using 1.")
         gold_goal = 1
 
     current_pos = (1, 1)
@@ -86,14 +85,14 @@ def main():
     prolog.assertz(f"visited(1, 1)")
     visited_history.add((1, 1))
 
-    print("\n>>> MISSION START <<<")
+    print("\nStart")
     
     while gold_collected < gold_goal:
         x, y = current_pos
-        print(f"\n--- Agent is currently at ({x}, {y}) ---")
+        print(f"\nAt ({x}, {y})")
         
         percepts = get_percepts(x, y, world_map)
-        print(f"Sensors detect: {percepts if percepts else 'Nothing'}")
+        print(f"Percepts: {percepts if percepts else 'none'}")
         
         if 'Breeze' in percepts:
             if not list(prolog.query(f"percept_breeze({x}, {y})")):
@@ -103,13 +102,13 @@ def main():
                 prolog.assertz(f"percept_stench({x}, {y})")
             
         if 'Glitter' in percepts and (x, y) not in gold_locations_found:
-            print("✨ GOLD RECOVERED! ✨")
+            print("Gold found.")
             gold_collected += 1
             gold_locations_found.append((x, y))
             world_map[(x, y)] = 'Empty' 
             
         if gold_collected >= gold_goal:
-            print("\n✅ MISSION ACCOMPLISHED! Target gold recovered.")
+            print("\nGoal reached.")
             break
             
         safe_unvisited_moves = []
@@ -123,7 +122,7 @@ def main():
         
         if adjacent_safe:
             next_move = adjacent_safe[0]
-            print(f"Logic dictates moving to adjacent safe square: {next_move}")
+            print(f"Move to {next_move}")
         else:
             reachable_safe = []
             for sx, sy in safe_unvisited_moves:
@@ -133,9 +132,9 @@ def main():
             
             if reachable_safe:
                 next_move = reachable_safe[0]
-                print(f"Path blocked. Agent backtracks and moves to known safe square: {next_move}")
+                print(f"Backtrack to {next_move}")
             else:
-                print("\n🛑 MISSION ABORTED! The agent cannot logically prove any remaining safe moves.")
+                print("\nNo safe move left.")
                 break
                 
         current_pos = next_move
